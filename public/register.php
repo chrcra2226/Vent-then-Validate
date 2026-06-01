@@ -1,8 +1,12 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/navbar.php';
-require_once '../includes/validation.php';
-require_once '../src/Database.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../includes/validation.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/models/Model.php';
+require_once __DIR__ . '/../src/models/User.php';
+require_once __DIR__ . '/../src/controllers/UserController.php';
 
 $errors = [];
 $success = '';
@@ -16,42 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
-    // Validate inputs
-    $errors = validateRegistration($name, $email, $password, $confirm_password);
+    $userController = new UserController();
+    $result = $userController->register($name, $email, $password, $confirm_password);
 
-    if (empty($errors)) {
-        try {
-            $db = Database::getInstance()->getConnection();
-
-            // Check if email already exists
-            $stmt = $db->prepare('SELECT user_id FROM users WHERE email = :email');
-            $stmt->execute([':email' => $email]);
-
-            if ($stmt->fetch()) {
-                $errors[] = 'An account with that email address already exists.';
-            } else {
-                // Hash the password
-                $password_hash = password_hash($password, PASSWORD_BCRYPT);
-
-                // Insert new user
-                $stmt = $db->prepare('
-                    INSERT INTO users (name, email, password_hash, role) 
-                    VALUES (:name, :email, :password_hash, :role)
-                ');
-                $stmt->execute([
-                    ':name'          => $name,
-                    ':email'         => $email,
-                    ':password_hash' => $password_hash,
-                    ':role'          => 'customer'
-                ]);
-
-                $success = 'Account created successfully! You can now <a href="login.php">login here</a>.';
-                $name = '';
-                $email = '';
-            }
-        } catch (PDOException $e) {
-            $errors[] = 'Something went wrong. Please try again.';
-        }
+    if ($result['success']) {
+        $success = $result['message'];
+        $name    = '';
+        $email   = '';
+    } else {
+        $errors = $result['errors'];
     }
 }
 ?>
@@ -71,12 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" placeholder="Enter your full name"
-                    value="<?php echo $name; ?>" required>
+                    value="<?php echo isset($name) ? htmlspecialchars($name) : ''; ?>" required>
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email address"
-                    value="<?php echo $email; ?>" required>
+                    value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -97,4 +74,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

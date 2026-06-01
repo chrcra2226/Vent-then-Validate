@@ -1,52 +1,32 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/navbar.php';
-require_once '../includes/validation.php';
-require_once '../src/Database.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/models/Model.php';
+require_once __DIR__ . '/../src/models/User.php';
+require_once __DIR__ . '/../src/controllers/UserController.php';
 
 $errors = [];
-$email = '';
+$email  = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Collect and sanitize inputs
-    $email = sanitize($_POST['email']);
+    $email    = $_POST['email'];
     $password = $_POST['password'];
 
-    // Validate inputs
-    $errors = validateLogin($email, $password);
+    $userController = new UserController();
+    $result = $userController->login($email, $password);
 
-    if (empty($errors)) {
-        try {
-            $db = Database::getInstance()->getConnection();
-
-            // Find user by email
-            $stmt = $db->prepare('SELECT * FROM users WHERE email = :email');
-            $stmt->execute([':email' => $email]);
-            $user = $stmt->fetch();
-
-            if ($user && password_verify($password, $user['password_hash'])) {
-                // Regenerate session ID for security
-                session_regenerate_id(true);
-
-                // Store user info in session
-                $_SESSION['user_id']   = $user['user_id'];
-                $_SESSION['user_name'] = $user['name'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = $user['role'];
-
-                // Redirect based on role
-                if ($user['role'] === 'admin') {
-                    header('Location: /vent-then-validate/public/admin/dashboard.php');
-                } else {
-                    header('Location: /vent-then-validate/public/my-complaints.php');
-                }
-                exit();
-            } else {
-                $errors[] = 'Invalid email address or password. Please try again.';
-            }
-        } catch (PDOException $e) {
-            $errors[] = 'Something went wrong. Please try again.';
+    if ($result['success']) {
+        if ($result['role'] === 'admin') {
+            header('Location: /vent-then-validate/public/admin/dashboard.php');
+        } else {
+            header('Location: /vent-then-validate/public/my-complaints.php');
         }
+        exit();
+    } else {
+        $errors = $result['errors'];
+        $email  = sanitize($_POST['email']);
     }
 }
 ?>
@@ -62,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email address"
-                    value="<?php echo $email; ?>" required>
+                    value="<?php echo htmlspecialchars($email); ?>" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -78,4 +58,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

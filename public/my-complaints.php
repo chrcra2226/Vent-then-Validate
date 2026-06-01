@@ -1,29 +1,25 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/navbar.php';
-require_once '../src/Database.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/models/Model.php';
+require_once __DIR__ . '/../src/models/User.php';
+require_once __DIR__ . '/../src/models/Category.php';
+require_once __DIR__ . '/../src/models/Complaint.php';
+require_once __DIR__ . '/../src/models/StatusHistory.php';
+require_once __DIR__ . '/../src/models/ComplaintFile.php';
+require_once __DIR__ . '/../src/controllers/UserController.php';
+require_once __DIR__ . '/../src/controllers/ComplaintController.php';
+
+$userController      = new UserController();
+$complaintController = new ComplaintController();
 
 // Redirect to login if not logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /vent-then-validate/public/login.php');
-    exit();
-}
+$userController->requireLogin();
 
 // Fetch complaints for logged in user
-try {
-    $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare('
-        SELECT c.*, cat.name AS category_name 
-        FROM complaints c
-        JOIN categories cat ON c.category_id = cat.category_id
-        WHERE c.user_id = :user_id
-        ORDER BY c.created_at DESC
-    ');
-    $stmt->execute([':user_id' => $_SESSION['user_id']]);
-    $complaints = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $complaints = [];
-}
+$complaints = $complaintController->getUserComplaints($_SESSION['user_id']);
 
 // Badge helper
 function getStatusBadge($status)
@@ -57,12 +53,13 @@ function getStatusBadge($status)
                     <th>Category</th>
                     <th>Status</th>
                     <th>Date Submitted</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($complaints)): ?>
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #555555; padding: 30px;">
+                        <td colspan="6" style="text-align: center; color: #555555; padding: 30px;">
                             No complaints submitted yet.
                             <a href="submit-complaint.php" style="color: #2E6DB4;">Submit one now.</a>
                         </td>
@@ -75,6 +72,10 @@ function getStatusBadge($status)
                             <td><?php echo htmlspecialchars($complaint['category_name']); ?></td>
                             <td><?php echo getStatusBadge($complaint['status']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($complaint['created_at'])); ?></td>
+                            <td>
+                                <a href="complaint-detail.php?id=<?php echo $complaint['complaint_id']; ?>"
+                                    style="color: #2E6DB4;">View</a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -83,4 +84,4 @@ function getStatusBadge($status)
     </div>
 </div>
 
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

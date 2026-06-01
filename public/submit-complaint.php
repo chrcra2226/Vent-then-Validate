@@ -1,61 +1,51 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/navbar.php';
-require_once '../includes/validation.php';
-require_once '../src/Database.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/models/Model.php';
+require_once __DIR__ . '/../src/models/User.php';
+require_once __DIR__ . '/../src/models/Category.php';
+require_once __DIR__ . '/../src/models/Complaint.php';
+require_once __DIR__ . '/../src/models/StatusHistory.php';
+require_once __DIR__ . '/../src/models/ComplaintFile.php';
+require_once __DIR__ . '/../src/controllers/UserController.php';
+require_once __DIR__ . '/../src/controllers/ComplaintController.php';
+
+$userController      = new UserController();
+$complaintController = new ComplaintController();
 
 // Redirect to login if not logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /vent-then-validate/public/login.php');
-    exit();
-}
+$userController->requireLogin();
 
-$errors = [];
-$success = '';
-$title = '';
+$errors      = [];
+$success     = '';
+$title       = '';
 $description = '';
 $category_id = '';
 
-// Fetch categories from database
-try {
-    $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare('SELECT * FROM categories ORDER BY name ASC');
-    $stmt->execute();
-    $categories = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $categories = [];
-}
+// Fetch categories
+$categories = $complaintController->getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Collect and sanitize inputs
-    $category_id = sanitize($_POST['category_id']);
-    $title = sanitize($_POST['title']);
-    $description = sanitize($_POST['description']);
+    $category_id = $_POST['category_id'];
+    $title       = $_POST['title'];
+    $description = $_POST['description'];
 
-    // Validate inputs
-    $errors = validateComplaint($category_id, $title, $description);
+    $result = $complaintController->submitComplaint(
+        $_SESSION['user_id'],
+        $category_id,
+        $title,
+        $description
+    );
 
-    if (empty($errors)) {
-        try {
-            $stmt = $db->prepare('
-                INSERT INTO complaints (user_id, category_id, title, description, status)
-                VALUES (:user_id, :category_id, :title, :description, :status)
-            ');
-            $stmt->execute([
-                ':user_id'     => $_SESSION['user_id'],
-                ':category_id' => $category_id,
-                ':title'       => $title,
-                ':description' => $description,
-                ':status'      => 'Open'
-            ]);
-
-            $success = 'Your complaint has been submitted successfully! We will review it shortly.';
-            $title = '';
-            $description = '';
-            $category_id = '';
-        } catch (PDOException $e) {
-            $errors[] = 'Something went wrong. Please try again.';
-        }
+    if ($result['success']) {
+        $success     = $result['message'];
+        $title       = '';
+        $description = '';
+        $category_id = '';
+    } else {
+        $errors = $result['errors'];
     }
 }
 ?>
@@ -88,17 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="title">Complaint Title</label>
                 <input type="text" id="title" name="title"
                     placeholder="Brief summary of your complaint"
-                    value="<?php echo $title; ?>" required>
+                    value="<?php echo htmlspecialchars($title); ?>" required>
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
                 <textarea id="description" name="description" rows="6"
                     placeholder="Please describe your complaint in detail..."
-                    required><?php echo $description; ?></textarea>
+                    required><?php echo htmlspecialchars($description); ?></textarea>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Complaint</button>
         </form>
     </div>
 </div>
 
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
