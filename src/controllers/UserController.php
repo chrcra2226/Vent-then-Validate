@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/Model.php';
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../../includes/validation.php';
+require_once __DIR__ . '/../util/validation.php';
 
 class UserController
 {
@@ -97,7 +97,7 @@ class UserController
     {
         session_unset();
         session_destroy();
-        header('Location: /vent-then-validate/public/login.php');
+        header('Location: /vent-then-validate/public/main_login.php');
         exit();
     }
 
@@ -159,7 +159,7 @@ class UserController
     public function requireLogin()
     {
         if (!$this->isLoggedIn()) {
-            header('Location: /vent-then-validate/public/login.php');
+            header('Location: /vent-then-validate/public/main_login.php');
             exit();
         }
     }
@@ -170,7 +170,7 @@ class UserController
     public function requireAdmin()
     {
         if (!$this->isAdmin()) {
-            header('Location: /vent-then-validate/public/login.php');
+            header('Location: /vent-then-validate/public/main_login.php');
             exit();
         }
     }

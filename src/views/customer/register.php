@@ -1,12 +1,13 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
-require_once __DIR__ . '/../includes/validation.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/Database.php';
-require_once __DIR__ . '/../src/models/Model.php';
-require_once __DIR__ . '/../src/models/User.php';
-require_once __DIR__ . '/../src/controllers/UserController.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../src/Database.php';
+require_once __DIR__ . '/../../../src/models/Model.php';
+require_once __DIR__ . '/../../../src/models/User.php';
+require_once __DIR__ . '/../../../src/util/validation.php';
+require_once __DIR__ . '/../../../src/controllers/UserController.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/navbar.php';
+require_once __DIR__ . '/../../util/security.php';
 
 $errors = [];
 $success = '';
@@ -14,6 +15,7 @@ $name = '';
 $email = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     // Collect and sanitize inputs
     $name = sanitize($_POST['name']);
     $email = sanitize($_POST['email']);
@@ -44,7 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert alert-success"><?php echo $success; ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="register.php">
+        <form method="POST" action="/vent-then-validate/public/main_register.php">
+            <?php csrfField(); ?>
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" placeholder="Enter your full name"
@@ -69,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <p style="text-align: center; margin-top: 20px; color: #555555;">
-            Already have an account? <a href="login.php" style="color: #2E6DB4;">Login here</a>
+            Already have an account? <a href="/vent-then-validate/src/views/customer/login.php" style="color: #2E6DB4;">Login here</a>
         </p>
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

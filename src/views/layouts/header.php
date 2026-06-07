@@ -1,5 +1,17 @@
 <?php
-session_start();
+if (!function_exists('secureSession')) {
+    require_once __DIR__ . '/../../util/security.php';
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    secureSession();
+    setSecurityHeaders();
+    session_start();
+}
+
+if (isset($_SESSION['user_id'])) {
+    checkSessionTimeout();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

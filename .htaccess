@@ -1,0 +1,9 @@
+# Block direct access to everything except the public folder
+RewriteEngine On
+RewriteRule ^(?!public/).*$ - [F,L]
+
+# Block access to sensitive files
+<FilesMatch "\.(php|sql|log|env)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

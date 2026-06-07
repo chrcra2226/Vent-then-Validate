@@ -1,0 +1,1 @@
+<?php require_once __DIR__ . '/../src/views/customer/my-complaints.php'; ?>

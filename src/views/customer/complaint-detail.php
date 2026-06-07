@@ -1,46 +1,47 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/Database.php';
-require_once __DIR__ . '/../src/models/Model.php';
-require_once __DIR__ . '/../src/models/User.php';
-require_once __DIR__ . '/../src/models/Category.php';
-require_once __DIR__ . '/../src/models/Complaint.php';
-require_once __DIR__ . '/../src/models/StatusHistory.php';
-require_once __DIR__ . '/../src/models/ComplaintFile.php';
-require_once __DIR__ . '/../src/controllers/UserController.php';
-require_once __DIR__ . '/../src/controllers/ComplaintController.php';
+require_once __DIR__ . '/../../util/security.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    secureSession();
+    setSecurityHeaders();
+    session_start();
+}
+
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../Database.php';
+require_once __DIR__ . '/../../models/Model.php';
+require_once __DIR__ . '/../../models/User.php';
+require_once __DIR__ . '/../../models/Category.php';
+require_once __DIR__ . '/../../models/Complaint.php';
+require_once __DIR__ . '/../../models/StatusHistory.php';
+require_once __DIR__ . '/../../models/ComplaintFile.php';
+require_once __DIR__ . '/../../util/validation.php';
+require_once __DIR__ . '/../../controllers/UserController.php';
+require_once __DIR__ . '/../../controllers/ComplaintController.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/navbar.php';
 
 $userController      = new UserController();
 $complaintController = new ComplaintController();
 
-// Redirect to login if not logged in
 $userController->requireLogin();
 
-// Get complaint ID from URL
 $complaint_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$complaint    = $complaintController->getComplaint($complaint_id);
 
-// Get complaint details
-$complaint = $complaintController->getComplaint($complaint_id);
-
-// Redirect if complaint not found or doesn't belong to user
 if (!$complaint) {
-    header('Location: /vent-then-validate/public/my-complaints.php');
+    header('Location: /vent-then-validate/public/main_my-complaint.php');
     exit();
 }
 
-// Customers can only view their own complaints
 if ($_SESSION['user_role'] === 'customer' && $complaint['user_id'] != $_SESSION['user_id']) {
-    header('Location: /vent-then-validate/public/my-complaints.php');
+    header('Location: /vent-then-validate/public/main_my-complaint.php');
     exit();
 }
 
-// Get status history and files
 $history = $complaintController->getStatusHistory($complaint_id);
 $files   = $complaintController->getComplaintFiles($complaint_id);
 
-// Badge helper
 function getStatusBadge($status)
 {
     $badges = [
@@ -50,13 +51,15 @@ function getStatusBadge($status)
         'Closed'    => 'badge-closed'
     ];
     $class = isset($badges[$status]) ? $badges[$status] : 'badge-open';
-    return '<span class="badge ' . $class . '">' . $status . '</span>';
+    return '<span class="badge ' . $class . '">' . htmlspecialchars($status) . '</span>';
 }
 ?>
 
 <div class="container">
     <div style="margin-bottom: 20px;">
-        <a href="<?php echo $_SESSION['user_role'] === 'admin' ? '/vent-then-validate/public/admin/complaints.php' : '/vent-then-validate/public/my-complaints.php'; ?>"
+        <a href="<?php echo $_SESSION['user_role'] === 'admin'
+                        ? '/vent-then-validate/public/admin/main_complaints.php'
+                        : '/vent-then-validate/public/main_my-complaint.php'; ?>"
             style="color: #2E6DB4;">&larr; Back to Complaints</a>
     </div>
 
@@ -135,7 +138,10 @@ function getStatusBadge($status)
                     <?php foreach ($history as $record): ?>
                         <tr>
                             <td><?php echo date('M d, Y H:i', strtotime($record['changed_at'])); ?></td>
-                            <td><?php echo $record['old_status'] ? getStatusBadge($record['old_status']) : 'N/A'; ?></td>
+                            <td><?php echo $record['old_status']
+                                    ? getStatusBadge($record['old_status'])
+                                    : '<span style="color:#555555;">N/A</span>'; ?>
+                            </td>
                             <td><?php echo getStatusBadge($record['new_status']); ?></td>
                             <td><?php echo htmlspecialchars($record['changed_by_name']); ?></td>
                             <td><?php echo htmlspecialchars($record['notes']); ?></td>
@@ -147,4 +153,4 @@ function getStatusBadge($status)
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

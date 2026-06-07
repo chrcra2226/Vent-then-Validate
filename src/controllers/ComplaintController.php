@@ -4,7 +4,7 @@ require_once __DIR__ . '/../models/Complaint.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/ComplaintFile.php';
 require_once __DIR__ . '/../models/StatusHistory.php';
-require_once __DIR__ . '/../../includes/validation.php';
+require_once __DIR__ . '/../util/validation.php';
 
 class ComplaintController
 {

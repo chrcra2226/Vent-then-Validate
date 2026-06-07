@@ -1,16 +1,19 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/Database.php';
-require_once __DIR__ . '/../src/models/Model.php';
-require_once __DIR__ . '/../src/models/User.php';
-require_once __DIR__ . '/../src/models/Category.php';
-require_once __DIR__ . '/../src/models/Complaint.php';
-require_once __DIR__ . '/../src/models/StatusHistory.php';
-require_once __DIR__ . '/../src/models/ComplaintFile.php';
-require_once __DIR__ . '/../src/controllers/UserController.php';
-require_once __DIR__ . '/../src/controllers/ComplaintController.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../src/Database.php';
+require_once __DIR__ . '/../../../src/models/Model.php';
+require_once __DIR__ . '/../../../src/models/User.php';
+require_once __DIR__ . '/../../../src/models/Category.php';
+require_once __DIR__ . '/../../../src/models/Complaint.php';
+require_once __DIR__ . '/../../../src/models/StatusHistory.php';
+require_once __DIR__ . '/../../../src/models/ComplaintFile.php';
+require_once __DIR__ . '/../../../src/util/validation.php';
+require_once __DIR__ . '/../../../src/controllers/UserController.php';
+require_once __DIR__ . '/../../../src/controllers/ComplaintController.php';
+require_once __DIR__ . '/../layouts/header.php';
+require_once __DIR__ . '/../layouts/navbar.php';
+require_once __DIR__ . '/../../util/security.php';
+
 
 $userController      = new UserController();
 $complaintController = new ComplaintController();
@@ -28,6 +31,7 @@ $category_id = '';
 $categories = $complaintController->getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $category_id = $_POST['category_id'];
     $title       = $_POST['title'];
     $description = $_POST['description'];
@@ -61,7 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert alert-success"><?php echo $success; ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="submit-complaint.php">
+        <form method="POST" action="/vent-then-validate/public/main_submit-complaint.php">
+            <?php csrfField(); ?>
             <div class="form-group">
                 <label for="category">Category</label>
                 <select id="category" name="category_id" required>
@@ -91,4 +96,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
