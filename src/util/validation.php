@@ -53,7 +53,7 @@ function isValidInt($value)
  */
 function sanitize($value)
 {
-    return htmlspecialchars(strip_tags(trim($value)));
+    return htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
 /**

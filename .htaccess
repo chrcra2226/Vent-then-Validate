@@ -1,9 +1,22 @@
-# Block direct access to everything except the public folder
-RewriteEngine On
-RewriteRule ^(?!public/).*$ - [F,L]
+# Prevent directory listing
+Options -Indexes
 
-# Block access to sensitive files
-<FilesMatch "\.(php|sql|log|env)$">
+# Block direct access to sensitive folders
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to src folder
+    RewriteRule ^src/ - [F,L]
+
+    # Block direct access to config folder
+    RewriteRule ^config/ - [F,L]
+
+    # Block direct access to uploads folder scripts
+    RewriteRule ^uploads/.*\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$ - [F,L]
+</IfModule>
+
+# Block access to sensitive file types
+<FilesMatch "\.(sql|log|env|htaccess)$">
     Order Allow,Deny
     Deny from all
 </FilesMatch>

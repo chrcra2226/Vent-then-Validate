@@ -38,12 +38,12 @@ function getStatusBadge($status)
 
 <div class="container">
     <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0;">
             <div>
-                <h2 style="color: #1B3A6B; margin-bottom: 5px;">My Complaints</h2>
-                <p style="color: #555555;">Welcome back, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</p>
+                <h2 style="color: #1B3A6B; margin-bottom: 4px;">My Complaints</h2>
+                <p style="color: #555555;">Welcome back, <?php echo htmlspecialchars($_SESSION['user_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>!</p>
             </div>
-            <a href="/vent-then-validate/src/views/customer/submit-complaint.php" class="btn btn-primary">+ New Complaint</a>
+            <a href="/vent-then-validate/public/main_submit-complaint.php" class="btn btn-primary">+ New Complaint</a>
         </div>
 
         <table class="table">
@@ -69,8 +69,8 @@ function getStatusBadge($status)
                     <?php foreach ($complaints as $complaint): ?>
                         <tr>
                             <td><?php echo $complaint['complaint_id']; ?></td>
-                            <td><?php echo htmlspecialchars($complaint['title']); ?></td>
-                            <td><?php echo htmlspecialchars($complaint['category_name']); ?></td>
+                            <td><?php echo htmlspecialchars($complaint['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($complaint['category_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
                             <td><?php echo getStatusBadge($complaint['status']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($complaint['created_at'])); ?></td>
                             <td>

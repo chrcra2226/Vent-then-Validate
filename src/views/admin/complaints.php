@@ -49,17 +49,17 @@ if (!empty($filter)) {
 
 <div class="container">
     <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div class="page-header">
             <div>
-                <h2 style="color: #1B3A6B; margin-bottom: 5px;">All Complaints</h2>
-                <p style="color: #555555;">Manage and respond to all customer complaints.</p>
+                <h2>All Complaints</h2>
+                <p>Manage and respond to all customer complaints.</p>
             </div>
             <a href="/vent-then-validate/public/admin/main_dashboard.php"
                 class="btn btn-primary">Back to Dashboard</a>
         </div>
 
         <!-- Filter Bar -->
-        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <div class="filter-bar">
             <a href="/vent-then-validate/public/admin/main_complaints.php"
                 class="btn <?php echo empty($filter) ? 'btn-primary' : 'btn-secondary'; ?>">All</a>
             <a href="/vent-then-validate/public/admin/main_complaints.php?status=Open"
@@ -95,9 +95,9 @@ if (!empty($filter)) {
                     <?php foreach ($complaints as $complaint): ?>
                         <tr>
                             <td><?php echo $complaint['complaint_id']; ?></td>
-                            <td><?php echo htmlspecialchars($complaint['title']); ?></td>
-                            <td><?php echo htmlspecialchars($complaint['category_name']); ?></td>
-                            <td><?php echo htmlspecialchars($complaint['user_name']); ?></td>
+                            <td><?php echo htmlspecialchars($complaint['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($complaint['category_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($complaint['user_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
                             <td><?php echo getStatusBadge($complaint['status']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($complaint['created_at'])); ?></td>
                             <td>

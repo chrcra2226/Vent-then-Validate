@@ -85,22 +85,20 @@ function getStatusBadge($status)
 <div class="container">
     <div style="margin-bottom: 20px;">
         <a href="/vent-then-validate/public/admin/main_complaints.php"
-            style="color: #2E6DB4;">&larr; Back to All Complaints</a>
+            class="back-link">&larr; Back to All Complaints</a>
     </div>
 
     <!-- Complaint Details -->
     <div class="card" style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div class="page-header">
             <div>
-                <h2 style="color: #1B3A6B; margin-bottom: 5px;">
-                    <?php echo htmlspecialchars($complaint['title']); ?>
-                </h2>
-                <p style="color: #555555;">
-                    Category: <strong><?php echo htmlspecialchars($complaint['category_name']); ?></strong>
+                <h2><?php echo htmlspecialchars($complaint['title'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></h2>
+                <p>
+                    Category: <strong><?php echo htmlspecialchars($complaint['category_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></strong>
                     &nbsp;|&nbsp;
-                    Submitted by: <strong><?php echo htmlspecialchars($complaint['user_name']); ?></strong>
+                    Submitted by: <strong><?php echo htmlspecialchars($complaint['user_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></strong>
                     &nbsp;|&nbsp;
-                    Email: <strong><?php echo htmlspecialchars($complaint['user_email']); ?></strong>
+                    Email: <strong><?php echo htmlspecialchars($complaint['user_email'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></strong>
                     &nbsp;|&nbsp;
                     Date: <strong><?php echo date('M d, Y', strtotime($complaint['created_at'])); ?></strong>
                 </p>
@@ -118,8 +116,12 @@ function getStatusBadge($status)
 
     <!-- Update Status Form -->
     <div class="card" style="margin-bottom: 20px;">
-        <h3 style="color: #1B3A6B; margin-bottom: 20px;">Update Complaint Status</h3>
-
+        <div class="page-header">
+            <div>
+                <h2>Update Complaint Status</h2>
+                <p>Change the status and add notes for the customer</p>
+            </div>
+        </div>
         <?php displayErrors($errors); ?>
 
         <?php if (!empty($success)): ?>
@@ -148,8 +150,13 @@ function getStatusBadge($status)
     </div>
 
     <!-- Attached Files -->
+    <!-- Files Section -->
     <div class="card" style="margin-bottom: 20px;">
-        <h3 style="color: #1B3A6B; margin-bottom: 15px;">Attached Files</h3>
+        <div class="page-header">
+            <div>
+                <h2>Attached Files</h2>
+            </div>
+        </div>
         <?php if (empty($files)): ?>
             <p style="color: #555555;">No files attached to this complaint.</p>
         <?php else: ?>
@@ -165,10 +172,52 @@ function getStatusBadge($status)
                 <tbody>
                     <?php foreach ($files as $file): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($file['file_name']); ?></td>
-                            <td><?php echo htmlspecialchars($file['file_type']); ?></td>
+                            <td><?php echo htmlspecialchars($file['file_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($file['file_type'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
                             <td><?php echo date('M d, Y', strtotime($file['uploaded_at'])); ?></td>
-                            <td><a href="#" style="color: #2E6DB4;">Download</a></td>
+                            <td>
+                                <button onclick="togglePreview('preview-<?php echo $file['file_id']; ?>')"
+                                    class="btn btn-secondary"
+                                    style="padding: 5px 15px; font-size: 0.85rem;">
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                        <tr id="preview-<?php echo $file['file_id']; ?>" style="display: none;">
+                            <td colspan="4" style="padding: 20px; background-color: #f4f6fa;">
+                                <?php
+                                $image_types = ['image/jpeg', 'image/png', 'image/gif'];
+                                $file_path   = $file['file_path'];
+                                $file_name   = $file['file_name'];
+
+                                // Convert absolute path to web accessible path
+                                $web_path = '/vent-then-validate/uploads/' . basename($file_path);
+                                ?>
+
+                                <?php if (in_array($file['file_type'], $image_types)): ?>
+                                    <div style="text-align: center;">
+                                        <img src="<?php echo htmlspecialchars($web_path, ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
+                                            alt="<?php echo htmlspecialchars($file_name, ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>"
+                                            style="max-width: 100%; max-height: 500px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                        <p style="margin-top: 10px; color: #555555; font-size: 0.9rem;">
+                                            <?php echo htmlspecialchars($file_name, ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?>
+                                        </p>
+                                    </div>
+                                <?php elseif ($file['file_type'] === 'application/pdf'): ?>
+                                    <div style="text-align: center;">
+                                        <p style="color: #555555; margin-bottom: 15px;">
+                                            PDF files cannot be previewed directly.
+                                            Click below to download.
+                                        </p>
+                                        <a href="/vent-then-validate/public/download-file.php?id=<?php echo $file['file_id']; ?>"
+                                            class="btn btn-primary">
+                                            Download PDF
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <p style="color: #555555;">Preview not available for this file type.</p>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -178,7 +227,12 @@ function getStatusBadge($status)
 
     <!-- Status History -->
     <div class="card">
-        <h3 style="color: #1B3A6B; margin-bottom: 15px;">Status History</h3>
+        <div class="page-header">
+            <div>
+                <h2>Status History</h2>
+                <p>All status changes made to this complaint</p>
+            </div>
+        </div>
         <?php if (empty($history)): ?>
             <p style="color: #555555;">No status history available.</p>
         <?php else: ?>
@@ -201,8 +255,8 @@ function getStatusBadge($status)
                                     : '<span style="color:#555555;">N/A</span>'; ?>
                             </td>
                             <td><?php echo getStatusBadge($record['new_status']); ?></td>
-                            <td><?php echo htmlspecialchars($record['changed_by_name']); ?></td>
-                            <td><?php echo htmlspecialchars($record['notes']); ?></td>
+                            <td><?php echo htmlspecialchars($record['changed_by_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($record['notes'], ENT_QUOTES | ENT_HTML5, 'UTF-8'); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
